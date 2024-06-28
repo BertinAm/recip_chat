@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatbot Test</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Syne">
+    <style>
+        body {
+            font-family: 'Syne', sans-serif;
+        }
+        #chatbox {
+            width: 100%;
+            height: 420px; /* Increased height to accommodate message numbering */
+            border: 1px solid #ddd;
+            overflow: auto;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            padding: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            position: relative;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .message-content {
+            flex: 1;
+        }
+        .message-number {
+            position: absolute;
+            bottom: -20px; /* Adjusted position to be below the message */
+            left: 10px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 1;
+        }
+        .user-message .message-number {
+            background-color: white;
+            color: #007bff;
+        }
+        .bot-message .message-number {
+            background-color: #007bff;
+            color: white;
+        }
+        .user-message {
+            text-align: right;
+            background-color: #007bff;
+            color: white;
+            flex-direction: row-reverse; /* Reverse message order for user messages */
+        }
+        .bot-message {
+            text-align: left;
+            background-color: #f8f9fa;
+        }
+        .copy-btn {
+            margin-top: 5px;
+            font-size: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 3px 5px;
+            cursor: pointer;
+            position: relative;
+            z-index: 0;
+        }
+        .copy-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        $(document).ready(function() {
+            let messageCounter = 1;
+
+            $("#chatbotForm").submit(function(event) {
+                event.preventDefault();
+                var message = $("#message").val();
+                if (message.trim() === "") {
+                    return;
+                }
+                console.log("User message:", message);
+                $("#chatbox").append('<div class="message user-message"><div class="message-number">' + messageCounter + '</div><div class="message-content">' + message + '</div></div>');
+                $("#message").val('');
+                $.ajax({
+                    url: 'http://127.0.0.1:8000/api/chatbot/',
+                    type: 'post',
+                    data: JSON.stringify({ "message": message }),
+                    headers: {
+                        "Content-Type": 'application/json',
+                        "X-CSRFToken": csrftoken
+                    },
+                    dataType: 'json',
+                    beforeSend: function() {
+                        console.log("Sending AJAX request with data:", { "message": message });
+                    },
+                    success: function (data) {
+                        console.log("Success response:", data);
+                        $("#chatbox").append('<div class="message bot-message"><div class="message-number">' + (messageCounter + 1) + '</div><div class="message-content">' + data.response + '</div><br><button class="copy-btn">Copy</button></div>');
+                        $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
+                        messageCounter += 2;
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", xhr.status, error);
+                        var errorMessage = xhr.status + ': ' + xhr.statusText;
+                        $("#chatbox").append('<div class="message bot-message"><div class="message-number">' + (messageCounter + 1) + '</div><div class="message-content">Error: ' + errorMessage + '</div><br><button class="copy-btn">Copy</button></div>');
+                        messageCounter += 2;
+                    }
+                });
+            });
+
+            $("#clearBtn").click(function() {
+                $("#chatbox").empty();
+                messageCounter = 1;
+            });
+
+            $(document).on('click', '.copy-btn', function() {
+                var text = $(this).prevAll('.message-content:first').text();
+                navigator.clipboard.writeText(text).then(function() {
+                    console.log('Copying to clipboard was successful!');
+                    alert('Copied to clipboard!');
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                });
+            });
+        });
+    </script>
+</head>
+<body class="container py-5">
+    <h1 class="text-center mb-4">RecipChat Test</h1>
+    <div id="chatbox"></div>
+    <form id="chatbotForm" class="form-inline justify-content-center">
+        <input type="text" id="message" name="message" class="form-control mr-2" style="width: 70%;">
+        <input type="submit" value="Submit" class="btn btn-primary mr-2">
+        <button type="button" id="clearBtn" class="btn btn-secondary">Clear</button>
+    </form>
+</body>
+</html>
