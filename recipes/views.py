@@ -58,6 +58,7 @@ class ChatbotAPIView(APIView):
 def test_html_view(request):
     return render(request, 'src/index.html')
 
+
 class ChatHistoryList(ListAPIView):
     queryset = ChatHistory.objects.all()
     serializer_class = ChatHistorySerializer
