@@ -5,7 +5,7 @@ import os
 
 class ChatGPTService:
     def __init__(self):
-        self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
     def generate_response(self, prompt):
         response = self.client.chat.completions.create(model="gpt-3.5-turbo",
