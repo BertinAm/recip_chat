@@ -85,6 +85,12 @@ WSGI_APPLICATION = 'recip_chat.wsgi.application'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:9000",
+    "https://recip-chat.onrender.com/",
+]
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
