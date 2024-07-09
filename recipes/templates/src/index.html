@@ -10,7 +10,7 @@
         }
         #chatbox {
             width: 100%;
-            height: 420px; /* Increased height to accommodate message numbering */
+            height: 420px;
             border: 1px solid #ddd;
             overflow: auto;
             border-radius: 5px;
@@ -30,7 +30,7 @@
         }
         .message-number {
             position: absolute;
-            bottom: -20px; /* Adjusted position to be below the message */
+            bottom: -20px;
             left: 10px;
             background-color: #007bff;
             color: white;
@@ -55,11 +55,13 @@
             text-align: right;
             background-color: #007bff;
             color: white;
-            flex-direction: row-reverse; /* Reverse message order for user messages */
+            flex-direction: row-reverse;
         }
         .bot-message {
             text-align: left;
             background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ddd;
         }
         .copy-btn {
             margin-top: 5px;
@@ -77,9 +79,8 @@
             background-color: #0056b3;
         }
         @media (max-width: 768px) {
-            /* Styles for mobile and tablet devices */
             #chatbox {
-                height: 300px; /* Reduced height for smaller screens */
+                height: 300px;
             }
             .message {
                 padding: 10px;
@@ -97,7 +98,7 @@
                 padding: 2px 4px;
             }
             #message {
-                width: 60%; /* Adjusted width for input field on smaller screens */
+                width: 60%;
             }
             #chatbotForm {
                 flex-direction: column;
@@ -140,7 +141,7 @@
                 $("#chatbox").append('<div class="message user-message"><div class="message-number">' + messageCounter + '</div><div class="message-content">' + message + '</div></div>');
                 $("#message").val('');
                 $.ajax({
-                    url: 'https://recip-chat.onrender.com/api/chatbot/',
+                    url: 'http://127.0.0.1:8000/api/chatbot/',
                     type: 'post',
                     data: JSON.stringify({ "message": message }),
                     headers: {
@@ -153,7 +154,7 @@
                     },
                     success: function (data) {
                         console.log("Success response:", data);
-                        $("#chatbox").append('<div class="message bot-message"><div class="message-number">' + (messageCounter + 1) + '</div><div class="message-content">' + data.response + '</div><br><button class="copy-btn">Copy</button></div>');
+                        $("#chatbox").append('<div class="message bot-message"><div class="message-number">' + (messageCounter + 1) + '</div><div class="message-content">' + formatResponse(data.response) + '</div><br><button class="copy-btn">Copy</button></div>');
                         $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
                         messageCounter += 2;
                     },
@@ -180,6 +181,61 @@
                     console.error('Could not copy text: ', err);
                 });
             });
+
+            function formatResponse(response) {
+                try {
+                    let responseObj = JSON.parse(response);
+                    let formattedResponse = `
+                        <strong>Title:</strong> ${responseObj.title}<br>
+                        <strong>Description:</strong> ${responseObj.description}<br>
+                        <strong>Prep Time:</strong> ${responseObj.prep_time}<br>
+                        <strong>Cook Time:</strong> ${responseObj.cook_time}<br>
+                        <strong>Total Time:</strong> ${responseObj.total_time}<br>
+                        <strong>Servings:</strong> ${responseObj.servings}<br>
+                        <strong>Course:</strong> ${responseObj.course}<br>
+                        <strong>Cuisine:</strong> ${responseObj.cuisine}<br>
+                        <strong>Diet:</strong> ${Array.isArray(responseObj.diet) ? responseObj.diet.join(', ') : responseObj.diet}<br>
+                        <strong>Author:</strong> ${responseObj.author}<br>
+                        <strong>Ingredients:</strong><ul>`;
+                    
+                    if (responseObj.ingredients && responseObj.ingredients.main) {
+                        responseObj.ingredients.main.forEach(ingredient => {
+                            formattedResponse += `<li>${ingredient}</li>`;
+                        });
+                    }
+                    
+                    formattedResponse += `</ul><strong>Instructions:</strong><ol>`;
+                    
+                    if (responseObj.instructions) {
+                        responseObj.instructions.forEach(instruction => {
+                            formattedResponse += `<li>${instruction}</li>`;
+                        });
+                    }
+                    
+                    formattedResponse += `</ol><strong>Notes:</strong><ul>`;
+                    
+                    if (responseObj.notes) {
+                        responseObj.notes.forEach(note => {
+                            formattedResponse += `<li>${note}</li>`;
+                        });
+                    }
+                    
+                    formattedResponse += `</ul><strong>Nutrition:</strong><ul>`;
+                    
+                    if (responseObj.nutrition) {
+                        for (const [key, value] of Object.entries(responseObj.nutrition)) {
+                            formattedResponse += `<li><strong>${key}:</strong> ${value}</li>`;
+                        }
+                    }
+                    
+                    formattedResponse += `</ul>`;
+                    
+                    return formattedResponse;
+                } catch (error) {
+                    console.error("Error formatting response:", error);
+                    return response;
+                }
+            }
         });
     </script>
 </head>

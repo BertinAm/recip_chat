@@ -1,17 +1,12 @@
-import google.generativeai as genai
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
-
-# Configure the API key
-api_key = 'AIzaSyD5ah4Mq-QRRH75AgfEIfatJWv7KHdUTuw'
-genai.configure(api_key=api_key)
-
-# Get user input
-user_input = input("Enter your prompt: ")
-
-try:
-    # Remove 'model' argument if not required (check Gemini API documentation)
-    response = genai.generate_text(prompt=user_input, temperature=0.5, max_output_tokens=10000)
-    print("Response:", response.result)
-    print("Response length:", len(response.result))
-except Exception as e:
-    print(f"An error occurred while generating text: {e}")
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+stream = client.chat.completions.create(
+    model="gpt-3.5-turbo",
+    messages=[{"role": "user", "content": "what is machine learning?"}],
+    stream=True,
+)
+for part in stream:
+    print(part.choices[0].delta.content or "")
