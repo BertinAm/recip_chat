@@ -142,7 +142,7 @@
                 $("#chatbox").append('<div class="message user-message"><div class="message-number">' + messageCounter + '</div><div class="message-content">' + message + '</div></div>');
                 $("#message").val('');
                 $.ajax({
-                    url: 'http://127.0.0.1:8000/api/chatbot/',
+                    url: 'http://recip-chat.onrender.com/api/chat/',
                     type: 'post',
                     data: JSON.stringify({ "message": message }),
                     headers: {
