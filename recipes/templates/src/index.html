@@ -10,7 +10,7 @@
         }
         #chatbox {
             width: 100%;
-            height: 420px; /* Increased height to accommodate message numbering */
+            height: 420px;
             border: 1px solid #ddd;
             overflow: auto;
             border-radius: 5px;
@@ -30,7 +30,7 @@
         }
         .message-number {
             position: absolute;
-            bottom: -20px; /* Adjusted position to be below the message */
+            bottom: -20px;
             left: 10px;
             background-color: #007bff;
             color: white;
@@ -55,7 +55,7 @@
             text-align: right;
             background-color: #007bff;
             color: white;
-            flex-direction: row-reverse; /* Reverse message order for user messages */
+            flex-direction: row-reverse;
         }
         .bot-message {
             text-align: left;
@@ -79,9 +79,8 @@
             background-color: #0056b3;
         }
         @media (max-width: 768px) {
-            /* Styles for mobile and tablet devices */
             #chatbox {
-                height: 300px; /* Reduced height for smaller screens */
+                height: 300px;
             }
             .message {
                 padding: 10px;
@@ -99,7 +98,7 @@
                 padding: 2px 4px;
             }
             #message {
-                width: 60%; /* Adjusted width for input field on smaller screens */
+                width: 60%;
             }
             #chatbotForm {
                 flex-direction: column;
@@ -142,7 +141,7 @@
                 $("#chatbox").append('<div class="message user-message"><div class="message-number">' + messageCounter + '</div><div class="message-content">' + message + '</div></div>');
                 $("#message").val('');
                 $.ajax({
-                    url: 'https://recip-chat.onrender.com/api/chat/',
+                    url: 'https://recip-chat.onrender.com/api/chatbot/',
                     type: 'post',
                     data: JSON.stringify({ "message": message }),
                     headers: {
@@ -185,45 +184,57 @@
 
             function formatResponse(response) {
                 try {
-                    let responseObj = JSON.parse(response);
-                    let formattedResponse = `
-                        <strong>Title:</strong> ${responseObj.title}<br>
-                        <strong>Description:</strong> ${responseObj.description}<br>
-                        <strong>Prep Time:</strong> ${responseObj.prep_time}<br>
-                        <strong>Cook Time:</strong> ${responseObj.cook_time}<br>
-                        <strong>Total Time:</strong> ${responseObj.total_time}<br>
-                        <strong>Servings:</strong> ${responseObj.servings}<br>
-                        <strong>Course:</strong> ${responseObj.course}<br>
-                        <strong>Cuisine:</strong> ${responseObj.cuisine}<br>
-                        <strong>Diet:</strong> ${responseObj.diet}<br>
-                        <strong>Author:</strong> ${responseObj.author}<br>
-                        <strong>Ingredients:</strong><ul>`;
-                    
-                    for (const [key, value] of Object.entries(responseObj.ingredients)) {
-                        formattedResponse += `<li><strong>${key}:</strong> ${value.join(', ')}</li>`;
+                    if (typeof response === 'string' || response instanceof String) {
+                        response = JSON.parse(response);
                     }
-                    
-                    formattedResponse += `</ul><strong>Instructions:</strong><ol>`;
-                    
-                    responseObj.instructions.forEach(instruction => {
-                        formattedResponse += `<li>${instruction}</li>`;
-                    });
-                    
-                    formattedResponse += `</ol><strong>Notes:</strong><ul>`;
-                    
-                    responseObj.notes.forEach(note => {
-                        formattedResponse += `<li>${note}</li>`;
-                    });
-                    
-                    formattedResponse += `</ul><strong>Nutrition:</strong><ul>`;
-                    
-                    for (const [key, value] of Object.entries(responseObj.nutrition)) {
-                        formattedResponse += `<li><strong>${key}:</strong> ${value}</li>`;
+                    if (response.title && response.description) {
+                        let formattedResponse = `
+                            <strong>Title:</strong> ${response.title}<br>
+                            <strong>Description:</strong> ${response.description}<br>
+                            <strong>Prep Time:</strong> ${response.prep_time}<br>
+                            <strong>Cook Time:</strong> ${response.cook_time}<br>
+                            <strong>Total Time:</strong> ${response.total_time}<br>
+                            <strong>Servings:</strong> ${response.servings}<br>
+                            <strong>Course:</strong> ${response.course}<br>
+                            <strong>Cuisine:</strong> ${response.cuisine}<br>
+                            <strong>Diet:</strong> ${response.diet}<br>
+                            <strong>Author:</strong> ${response.author}<br>
+                            <strong>Ingredients:</strong><ul>`;
+                        
+                        for (const [key, value] of Object.entries(response.ingredients)) {
+                            formattedResponse += `<li><strong>${key}:</strong> ${value.join(', ')}</li>`;
+                        }
+                        
+                        formattedResponse += `</ul><strong>Instructions:</strong><ol>`;
+                        
+                        response.instructions.forEach(instruction => {
+                            formattedResponse += `<li>${instruction}</li>`;
+                        });
+                        
+                        formattedResponse += `</ol><strong>Notes:</strong><ul>`;
+                        
+                        response.notes.forEach(note => {
+                            formattedResponse += `<li>${note}</li>`;
+                        });
+                        
+                        formattedResponse += `</ul><strong>Nutrition:</strong><ul>`;
+                        
+                        for (const [key, value] of Object.entries(response.nutrition)) {
+                            formattedResponse += `<li><strong>${key}:</strong> ${value}</li>`;
+                        }
+                        
+                        formattedResponse += `</ul><strong>Substitutes:</strong><ul>`;
+                        
+                        response.substitutes.forEach(substitute => {
+                            formattedResponse += `<li><strong>Original:</strong> ${substitute.original}, <strong>Substitute:</strong> ${substitute.substitute}, <strong>Reason:</strong> ${substitute.reason}</li>`;
+                        });
+
+                        formattedResponse += `</ul>`;
+
+                        return formattedResponse;
+                    } else {
+                        return response;
                     }
-                    
-                    formattedResponse += `</ul><strong>Image:</strong><br><img src="${responseObj.image}" alt="${responseObj.title}" style="max-width: 100%;">`;
-                    
-                    return formattedResponse;
                 } catch (error) {
                     console.error("Error formatting response:", error);
                     return response;
